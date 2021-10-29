@@ -2,3 +2,6 @@ sqlmodel
 bs4
 python-dateutil
 transformers
+selenium
+requests
+torch
