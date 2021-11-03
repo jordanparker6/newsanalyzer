@@ -12,6 +12,17 @@ To install `newsreader` run the following command, `pip3 install https://github.
 
 After `newsreader` has been installed, run the CLI with `python3 -m newsreader`.
 
+```
+    _   __                                      __             ________    ____
+   / | / /__ _      _______________  ____ _____/ /__  _____   / ____/ /   /  _/
+  /  |/ / _ \ | /| / / ___/ ___/ _ \/ __ `/ __  / _ \/ ___/  / /   / /    / /  
+ / /|  /  __/ |/ |/ (__  ) /  /  __/ /_/ / /_/ /  __/ /     / /___/ /____/ /   
+/_/ |_/\___/|__/|__/____/_/   \___/\__,_/\__,_/\___/_/      \____/_____/___/   
+                                                                               
+
+Welcome to Newsreader CLI
+```
+
 Please note that the default setting will save the analyzed news articles to a sqlite database in your current directory.
 
 ### Contribute
