@@ -7,3 +7,5 @@ requests
 torch
 pyfiglet
 termcolor
+steamlit
+questionary

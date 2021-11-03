@@ -6,7 +6,24 @@ This library includes the following features:
 - A relational database for storing of scraped articles and NLP results.
 - An NLP pipeline for analysing entities and sentiment
 
-To do list:
+### Contribute
+
+Pull requests to add additional scrapers to the CLI are welcomed. To add a scraper, implement the `ScraperBase` interface defined at `newsreader/scrapers/base.py` within `newsreader/scrapers/all.py`. For reference, the `ScraperBase` interface is displayed below:
+
+```
+ScraperBase(ABC)
+    @abstractmethod
+    def _find_documents(self, to: dt.datetime) -> Generator:
+        """Collect Document records up to period 'to'"""
+        raise NotImplementedError
+    
+    @abstractmethod
+    def _scrape_document(self, href: str):
+        """Collect text from the href of a collected Document record."""
+        raise NotImplementedError
+```
+
+#### To do list:
 - possible migration to spaCy for NLP and integration of entity linking with https://github.com/UB-Mannheim/spacyopentapioca
 - add database migration utility
 - add steamlit interface for summary analytics

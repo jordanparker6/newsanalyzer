@@ -22,8 +22,7 @@ def clean_ner_schema(ent):
 def analyse(
         database: Database, 
         ner_model: str, 
-        sent_model: str,
-        max_sequence_lenght: int = 128
+        sent_model: str
     ):
     print("NLP Analysis:")
     # ~~~~ Inititate the Language Model Pipelines ~~~~~~~
@@ -55,9 +54,13 @@ def analyse(
             paragraphs = split_paragraphs(text)
             if len(paragraphs) > 0:
                 try:
-                    items = zip(paragraphs, sent(paragraphs), ner(paragraphs))
+                    items = zip(
+                            paragraphs, 
+                            sent(paragraphs), 
+                            ner(paragraphs)
+                        )
                 except Exception as e:
-                    log.error(e, data={ "id": id, "text": text, "paragraphs": paragraphs })
+                    log.error(e, extra={ "id": id, "text": text, "paragraphs": paragraphs })
                     continue
                 results = []
                 for j, item in enumerate(items):

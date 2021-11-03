@@ -1,34 +1,31 @@
-from PyInquirer import Token, ValidationError, Validator, print_json, prompt, style_from_dict
+from questionary import Style, Validator, ValidationError, prompt, print as pprint
 from pyfiglet import figlet_format
 import datetime as dt
-try:
-    from termcolor import colored
-except ImportError:
-    colored = None
+import scrapers
 
-style = style_from_dict({
-    Token.QuestionMark: '#fac731 bold',
-    Token.Answer: '#4688f1 bold',
-    Token.Instruction: '',  # default
-    Token.Separator: '#cc5454',
-    Token.Selected: '#0abf5b',  # default
-    Token.Pointer: '#673ab7 bold',
-    Token.Question: '',
-})
+style = Style([
+    ('qmark', '#07b05b bold'),                  # token in front of the question
+    ('answer', '#00b3ff bold'),                 # submitted answer text behind the question
+    ('pointer', '#07b05b bold'),                # pointer used in select and checkbox prompts
+    ('highlighted', 'bold'),                    # pointed-at choice in select and checkbox prompts
+    ('selected', 'bold noreverse'),                    # style for a selected item of a checkbox
+    ('separator', '#cc5454'),                   # separator in lists
+    ('instruction', ''),                        # user instructions for select, rawselect, checkbox
+    ('text', ''),                               # plain text
+    ('disabled', 'fg:#858585 italic')           # disabled choices for select and checkbox prompts
+])
 
 # ~~~ CLI Logging Utility ~~~~~~~~~~~~~~~
 
-def log(string, color, font="slant", figlet=False):
-    if colored:
-        if not figlet:
-            print(colored(string, color))
-        else:
-            print(colored(figlet_format(
-                string, font=font), color))
+def log(string, style, font="slant", figlet=False):
+    if not figlet:
+        pprint(string, style)
     else:
-        print(string)
+        pprint(figlet_format(
+            string, font=font
+        ), style)
 
-# ~~~ PyInquirer Validators ~~~~~~~~~~~~~~~
+# ~~~ Validators ~~~~~~~~~~~~~~~
 
 class EmptyValidator(Validator):
     def validate(self, value):
@@ -49,7 +46,7 @@ class ISODatetimeValidator(Validator):
                 cursor_position=len(value.text)
             )
 
-# ~~~ PyInquirer Questions ~~~~~~~~~~~~~~~
+# ~~~ Questions ~~~~~~~~~~~~~~~
 
 def askQuestions(methods):
     cfg = {}
@@ -86,11 +83,11 @@ def askMethodInfo():
             'validate': lambda answer: 'You must choose at least one operation.' if len(answer) == 0 else True
         }
     ]
-    answers = prompt(questions, style=style)
-    return answers
+    return prompt(questions, style=style)
 
 def askScraperInfo():
     now = dt.date.today()
+    scraper_classes = list(map(lambda x: x.__name__, scrapers.ScraperBase.__subclasses__()))
     questions = [
         {
             'type': 'input',
@@ -98,27 +95,32 @@ def askScraperInfo():
             'message': "How far back do you wish to scrape?",
             'default': now.replace(year=now.year - 1).isoformat(),
             'validate': ISODatetimeValidator,
+        },
+        {
+            'type': 'checkbox',
+            'name': 'classes',
+            'message': 'Which scrapers to run?',
+            'choices': map(lambda x: { "name": x, "checked": True }, scraper_classes),
+            'validate': lambda answer: 'You must choose at least one operation.' if len(answer) == 0 else True
         }
     ]
-    answers = prompt(questions, style=style)
-    return answers
+    return prompt(questions, style=style)
 
 def askNLPInfo():
     questions = [
         {
             'type': 'input',
             'name': "ner",
-            'message': "Which Hugginface NER model to use?",
+            'message': "Which Huggingface NER model to use?",
             'default': "dslim/bert-base-NER",
             'validate': EmptyValidator
         },
                 {
             'type': 'input',
             'name': "sent",
-            'message': "Which Hugginface Sentiment Analysis model to use?",
+            'message': "Which Huggingface Sentiment Analysis model to use?",
             'default': "finiteautomata/bertweet-base-sentiment-analysis",
             'validate': EmptyValidator
         }
     ]
-    answers = prompt(questions, style=style)
-    return answers
+    return prompt(questions, style=style)
