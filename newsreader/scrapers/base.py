@@ -8,9 +8,8 @@ from bs4 import BeautifulSoup
 import datetime as dt
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from database import Database, Document
 from sqlmodel import select, or_
-
+from newsreader.database import Database, Document
 # ~~~ Base Scraping Class ~~~~~~~~~~~~~~~~~~~~~~
 
 @dataclass
@@ -111,7 +110,7 @@ class ScraperBase(threading.Thread):
         raise NotImplementedError
     
     @abstractmethod
-    def _scrape_document(self, href: str):
+    def _scrape_document(self, href: str) -> str:
         raise NotImplementedError
 
     def __del__(self):

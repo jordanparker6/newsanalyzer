@@ -1,7 +1,7 @@
-from scrapers.base import ScraperBase 
 from typing import Generator
 from dateutil.parser import parse
 import datetime as dt
+from .base import ScraperBase 
 
 # ~~~ Scraper Implementations ~~~~~~~~~~~~~~~~~
 

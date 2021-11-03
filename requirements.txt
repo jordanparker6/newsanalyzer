@@ -9,3 +9,4 @@ pyfiglet
 termcolor
 steamlit
 questionary
+wikidata

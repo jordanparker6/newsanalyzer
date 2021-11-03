@@ -13,7 +13,7 @@ This library includes the following features:
 
 To install `newsreader` run the following command, `pip3 install https://github.com/jordanparker6/newsreader`.
 
-After `newsreader` has been installed, run the CLI with `python3 -m newsreader`.
+After `newsreader` has been installed, run the CLI with `newsreader`.
 
 ```
     _   __                                      __             ________    ____
@@ -35,13 +35,23 @@ Pull requests to add additional scrapers to the CLI are welcomed. To add a scrap
 ```python
 ScraperBase(ABC)
     @abstractmethod
-    def _find_documents(self, to: dt.datetime) -> Generator:
-        """Collect Document records up to period 'to'."""
+    def _find_documents(self, to: dt.datetime) -> Generator[Dict]:
+        """
+        Collect news records up to period 'to'. 
+
+        Yield:
+            Dict: Dictionary of article names, date and href.
+        """
         raise NotImplementedError
     
     @abstractmethod
-    def _scrape_document(self, href: str):
-        """Collect text from the href of a collected Document record."""
+    def _scrape_document(self, href: str) -> str:
+        """
+        Collect text from the href of a collected news record.
+
+        Return:
+            str: The content of the article.
+        """
         raise NotImplementedError
 ```
 

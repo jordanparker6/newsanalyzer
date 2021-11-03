@@ -1,16 +1,10 @@
 from tqdm import tqdm
 import logging
 from transformers import AutoTokenizer, AutoModelForTokenClassification, AutoModelForSequenceClassification, pipeline
-from database import Database, Paragraph, EntityMention
+from newsreader.database import Database, Paragraph, EntityMention
+from .utils import split_paragraphs, truncate_text
 
 log = logging.getLogger(__name__)
-
-# ~~~~ Utility Processing Methods ~~~~~~~
-
-def split_paragraphs(text: str):
-    text = text.replace("\r\n", "\n")
-    paragraphs = text.split('\n\n')
-    return list(filter(lambda x: len(x) > 0, paragraphs))
 
 def clean_ner_schema(ent):
     ent["label"] = ent["entity_group"]
@@ -51,7 +45,7 @@ def analyse(
             break
         for doc in tqdm(docs):
             id, text = doc
-            paragraphs = split_paragraphs(text)
+            paragraphs = list(map(lambda x: truncate_text(x, 700), split_paragraphs(text)))
             if len(paragraphs) > 0:
                 try:
                     items = zip(
@@ -60,6 +54,7 @@ def analyse(
                             ner(paragraphs)
                         )
                 except Exception as e:
+                    print(len(text))
                     log.error(e, extra={ "id": id, "text": text, "paragraphs": paragraphs })
                     continue
                 results = []

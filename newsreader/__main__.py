@@ -1,7 +1,7 @@
-import scrapers
-import cli
-from database import Database
-from nlp import analyse
+from newsreader import scrapers
+from newsreader import cli
+from newsreader.database import Database
+from newsreader.nlp.transformers import analyse
 
 __author__ = "@jordanparker6"
 
