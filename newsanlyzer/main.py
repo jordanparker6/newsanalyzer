@@ -1,11 +1,9 @@
-import argparse
-import datetime as dt
 import scrapers
 import cli
 from database import Database
 from nlp import analyse
 
-__author__ = "jordanparker6"
+__author__ = "@jordanparker6"
 
 def main():
     cli.log("Newsreader CLI", color="blue", figlet=True)
