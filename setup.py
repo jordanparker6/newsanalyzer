@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
      name='newsreader',  
-     version='0.1',
+     version='0.2',
      scripts=['./newsreader/__main__.py'],
      author="Jordan Parker",
      author_email="jordanhparker6@gmail.com",
