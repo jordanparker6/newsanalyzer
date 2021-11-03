@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-     name='newsanlyzer',  
+     name='newsreader',  
      version='.1',
      scripts=['main'] ,
      author="Jordan Parker",
