@@ -2,9 +2,12 @@
 A web-scraper, sentiment and entity analysis tool for market research
 
 This library includes the following features:
-- A base web-scraper interface for extension to additional scraping activities.
-- A relational database for storing of scraped articles and NLP results.
-- An NLP pipeline for analysing entities and sentiment
+- A multi-threaded web-scraper implentation with an extendable interface.
+- A collection of web-scrapers for building up a market research corpus.
+- An NLP pipeline for analysing entities and sentiment.
+- A relational database for storing scraped articles, named entities and sentiment.
+- A streamlit dashboard for interactive analysis and visualization.
+
 
 ### Quick Start
 
