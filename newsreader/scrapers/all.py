@@ -30,6 +30,10 @@ class ITNewsScraper(ScraperBase):
     def _scrape_document(self, href: str):
         html = self.get_html(href)
         text = ""
-        for p in html.select("#article-body > p"):
-            text += p.text + "\n\n"
+        paragraphs = html.select("#article-body > p")
+        if len(paragraphs) > 0:
+            for p in paragraphs:
+                text += p.text + "\n\n"
+        else:
+            text = html.select_one("#article-body").text
         return text

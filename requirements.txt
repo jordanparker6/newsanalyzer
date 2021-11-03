@@ -5,3 +5,5 @@ transformers
 selenium
 requests
 torch
+pyfiglet
+termcolor

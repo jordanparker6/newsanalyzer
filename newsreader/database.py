@@ -50,10 +50,11 @@ class Paragraph(SQLModel, table=True):
 
 class EntityMention(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    word: str
+    text: str
     score: float
     label: str
     paragraph_id: str = Field(foreign_key="paragraph.id")
+    kb_id: Optional[str]
     start: int
     end: int
 

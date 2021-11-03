@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from dataclasses import dataclass
 from typing import Generator
 import hashlib
 import requests
@@ -8,9 +9,15 @@ import datetime as dt
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from database import Database, Document
-from sqlmodel import select
+from sqlmodel import select, or_
 
 # ~~~ Base Scraping Class ~~~~~~~~~~~~~~~~~~~~~~
+
+@dataclass
+class ScraperConfig:
+    period_to: str
+    headless: bool = True
+    batch: int = 10
 
 class ScraperBase(threading.Thread):
     """
@@ -24,21 +31,23 @@ class ScraperBase(threading.Thread):
 
     def __init__(self, 
             database: Database, 
-            headless: bool = True
+            config: ScraperConfig
         ) -> None:
+        super().__init__()
         print("Creating scraper for: ", self.url)
         self.name = type(self).__name__
         self.db = database
+        self.config = config
         options = Options()
-        if headless:
+        if config.headless:
             options.add_argument("--headless")
         self.browser = webdriver.Chrome(options=options)
     
-    def run(self, period_to: str):
-        self.collect_documents(period_to)
+    def run(self):
+        self.collect_documents(self.config.period_to, self.config.batch)
         self.scrape_documents()
 
-    def collect_documents(self, to: str, batch: int = 10):
+    def collect_documents(self, to: str, batch: int):
         """
         Collects the URLs of documents between a certain period
 
@@ -73,9 +82,9 @@ class ScraperBase(threading.Thread):
         statement = select(
                         Document
                     ).where(
-                        Document.text == None
+                        or_(Document.text == None, Document.text == "")
                     ).where(
-                        Document.collected_by == "ITNewsScraper"
+                        Document.collected_by == self.name
                     )
         docs = self.db.exec(statement)
         print("Scraping Document Text:")
