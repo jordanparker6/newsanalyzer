@@ -6,15 +6,23 @@ This library includes the following features:
 - A relational database for storing of scraped articles and NLP results.
 - An NLP pipeline for analysing entities and sentiment
 
+### Quick Start
+
+To install `newsreader` run the following command, pip3 install https://github.com/jordanparker6/newsreader.
+
+After `newsreader` has been installed, run the CLI with `python3 -m newsreader`.
+
+Please note that the default setting will save the analyzed news articles to a sqlite database in your current directory.
+
 ### Contribute
 
 Pull requests to add additional scrapers to the CLI are welcomed. To add a scraper, implement the `ScraperBase` interface defined at `newsreader/scrapers/base.py` within `newsreader/scrapers/all.py`. For reference, the `ScraperBase` interface is displayed below:
 
-```
+```python
 ScraperBase(ABC)
     @abstractmethod
     def _find_documents(self, to: dt.datetime) -> Generator:
-        """Collect Document records up to period 'to'"""
+        """Collect Document records up to period 'to'."""
         raise NotImplementedError
     
     @abstractmethod
