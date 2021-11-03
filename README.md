@@ -1,4 +1,4 @@
-# newsreader
+# newsanlyzer
 A web-scraper, sentiment and entity analysis tool for market research
 
 This library includes the following features:
