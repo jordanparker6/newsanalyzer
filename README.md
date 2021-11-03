@@ -8,7 +8,7 @@ This library includes the following features:
 
 ### Quick Start
 
-To install `newsreader` run the following command, pip3 install https://github.com/jordanparker6/newsreader.
+To install `newsreader` run the following command, `pip3 install https://github.com/jordanparker6/newsreader`.
 
 After `newsreader` has been installed, run the CLI with `python3 -m newsreader`.
 
