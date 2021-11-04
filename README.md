@@ -1,4 +1,6 @@
-https://img.shields.io/github/license/jordanparker6/newsreader
+[![GitHub license](https://img.shields.io/github/license/jordanparker6/newsreader)]
+[![PyPI download month](https://img.shields.io/pypi/dm/ansicolortags.svg)(https://pypi.python.org/pypi/ansicolortags/)]
+
 
 # newsreader
 A web-scraper, sentiment and entity analysis tool for market research
