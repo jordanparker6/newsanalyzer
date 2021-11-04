@@ -1,5 +1,4 @@
-[![GitHub license](https://img.shields.io/github/license/jordanparker6/newsreader)]
-[![PyPI download month](https://img.shields.io/pypi/dm/ansicolortags.svg)(https://pypi.python.org/pypi/ansicolortags/)]
+![GitHub license](https://img.shields.io/github/license/jordanparker6/newsreader)
 
 
 # newsreader
