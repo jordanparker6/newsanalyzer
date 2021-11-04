@@ -1,13 +1,20 @@
+from typing import Dict, Any
 import requests
-import pprint
+from pprint import pprint
+from string import Template    
 
 class Wikidata:
+    """
+    A collection of SQARQL queries over wikidata for key NER categories.
+    """
     url: str = 'https://query.wikidata.org/sparql'
     
-    def query(self, sparql: str):
+    def query(self, sparql: str, values: Dict[str, Any] = {}):
+        sparql = Template(sparql).substitute(**values)
         r = requests.get(self.url, params = {'format': 'json', 'query': sparql })
-        data = r.json()
-        pprint(data)
+        data = r.json()["results"]["bindings"]
+        data = list(map(lambda x: { k: v["value"] for k,v in x.items() }, data))
+        return data
 
     def get_info(self, label: str, id: str):
         if label == "ORG":
@@ -21,27 +28,56 @@ class Wikidata:
 
     def get_organisation_info(self, id: str):
         sparql = """
+        SELECT 
+            ?id ?idLabel 
+            ?industry ?industryLabel 
+            ?country ?countryLabel 
+            ?inception 
+            ?abn 
+            ?acn 
+            ?ticker 
+            ?website
+            ?twiter
+            ?employees
+            ?total_debt
+            ?totql_equity
+            ?total_revenue
+        WHERE {
         
+            VALUES ?id {  wd:$id }
+
+            OPTIONAL { ?id wdt:P856 ?website. }
+            OPTIONAL { ?id wdt:P571 ?inception. }
+            OPTIONAL { ?id wdt:P17 ?country. }
+            OPTIONAL { ?id wdt:P3548 ?abn. }
+            OPTIONAL { ?id wdt:P3549 ?acn. }
+            OPTIONAL { ?id wdt:P249 ?ticker. }
+            OPTIONAL { ?id wdt:P1128 ?employees. }
+            OPTIONAL { ?id wdt:P452 ?industry. }
+            OPTIONAL { ?id wdt:P2002 ?twiter. }
+            OPTIONAL { ?id wdt:P2133 ?total_debt. }
+            OPTIONAL { ?id wdt:P2137 ?total_equity. }
+            OPTIONAL { ?id wdt:P2139 ?total_revenue. }
+        
+            SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }  
+        }
         """
-        return self.query(sparql)
+        return self.query(sparql, { "id": id })
 
     def get_person_info(self, id: str):
         sparql = """
         
         """
         return self.query(sparql)
-
+    
+    def get_location_info(self, id:str):
+        sparql = """
+        
+        """
+        return self.query(sparql, { "id": id })
     
         
 wiki = Wikidata()
-wiki.query('''
-SELECT ?item ?itemLabel ?linkcount WHERE {
-    ?item wdt:P31/wdt:P279* wd:Q35666 .
-    ?item wikibase:sitelinks ?linkcount .
-    FILTER (?linkcount >= 1) .
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" . }
-    }
-    GROUP BY ?item ?itemLabel ?linkcount
-    ORDER BY DESC(?linkcount)
-''')
+data = wiki.get_organisation_info("Q721162")
+pprint(data)
 

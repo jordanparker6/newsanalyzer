@@ -1,4 +1,4 @@
-from typing import Optional, List, Any
+from typing import Optional, Dict, List, Any
 import datetime as dt
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 
@@ -25,9 +25,9 @@ class Database:
         print(stmt)
         return self.exec(stmt)
     
-    def exec(self, stmt: str):
+    def exec(self, stmt: str, params = {}):
         with Session(self.engine) as session:
-            return session.exec(stmt).all()
+            return session.exec(stmt, params=params).all()
     
 
 # ~~~ Models ~~~~~~~~~~~~~~~~~
@@ -48,16 +48,27 @@ class Paragraph(SQLModel, table=True):
     sentiment: str
     sent_score: float
 
+class Entity(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    name: str
+
 class EntityMention(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     text: str
     score: float
     label: str
-    paragraph_id: str = Field(foreign_key="paragraph.id")
-    kb_id: Optional[str]
     start: int
     end: int
+    paragraph_id: str = Field(foreign_key="paragraph.id")
+    kb_id: Optional[str] = Field(foreign_key="entity.id")
 
+"""
+class EntityFeatures(SQLModel, table=True):
+    id: str
+    key: str
+    value: Any
+    kb_id: Field(foreign_key="entity.id")
+"""
 
 
 
