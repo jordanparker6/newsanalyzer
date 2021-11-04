@@ -1,3 +1,5 @@
+https://img.shields.io/github/license/jordanparker6/newsreader
+
 # newsreader
 A web-scraper, sentiment and entity analysis tool for market research
 

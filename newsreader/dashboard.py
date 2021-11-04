@@ -1,9 +1,8 @@
-from sqlmodel import default
 import streamlit as st
 import pandas as pd
 import argparse
 import datetime as dt
-from newsreader.database import Database
+from .database import Database
 
 parser = argparse.ArgumentParser(description="A steamlit dashboard for visualising news analytics.")
 parser.add_argument("--database", type=str, default="sqlite:///database.db")
@@ -41,8 +40,9 @@ class Dasboard:
 
         # ~~~ Build Main UI ~~~~~~~~~~
 
-        st.text_input("Search")
+        st.text_input("Search", key="search_text")
 
+        st.write(self.state.search_text)
         st.write([self.state.period_from, self.state.period_to])
         st.write(self.get_total_sentiment("00375cd420e37d4084c6668975f91648"))
 

@@ -9,7 +9,7 @@ import datetime as dt
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from sqlmodel import select, or_
-from newsreader.database import Database, Document
+from ..database import Database, Document
 # ~~~ Base Scraping Class ~~~~~~~~~~~~~~~~~~~~~~
 
 @dataclass

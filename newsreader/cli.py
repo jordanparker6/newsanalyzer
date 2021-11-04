@@ -1,7 +1,7 @@
 from questionary import Style, Validator, ValidationError, prompt, print as pprint
 from pyfiglet import figlet_format
 import datetime as dt
-from newsreader import scrapers
+from . import scrapers
 
 style = Style([
     ('qmark', '#07b05b bold'),                  # token in front of the question

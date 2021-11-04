@@ -1,7 +1,7 @@
 from tqdm import tqdm
 import logging
 from transformers import AutoTokenizer, AutoModelForTokenClassification, AutoModelForSequenceClassification, pipeline
-from newsreader.database import Database, Paragraph, EntityMention
+from ..database import Database, Paragraph, EntityMention
 from .utils import split_paragraphs, truncate_text
 
 log = logging.getLogger(__name__)
