@@ -6,7 +6,8 @@ selenium
 requests
 torch
 pyfiglet
-termcolor
-steamlit
+streamlit
 questionary
-wikidata
+spacy>3.1
+spacyopentapioca
+spacytextblob>0.1.7

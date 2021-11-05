@@ -1,3 +1,6 @@
+"""
+The Transformers framework is not currently being used. SpaCy is faster wtih pre-existing entity linking solutions.
+"""
 from tqdm import tqdm
 import logging
 from transformers import AutoTokenizer, AutoModelForTokenClassification, AutoModelForSequenceClassification, pipeline

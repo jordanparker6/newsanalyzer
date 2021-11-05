@@ -2,14 +2,14 @@ import streamlit as st
 import pandas as pd
 import argparse
 import datetime as dt
-from .database import Database
+from sqlmodel import create_engine, Session
 
 parser = argparse.ArgumentParser(description="A steamlit dashboard for visualising news analytics.")
 parser.add_argument("--database", type=str, default="sqlite:///database.db")
 
 class Dasboard:
     def __init__(self, database) -> None:
-        self.db = Database(database)
+        self.engine = create_engine(database)
         self.attr = {
             "date_range": self.get_date_range(),
         }
@@ -51,15 +51,18 @@ class Dasboard:
         
 
     # ~~~ Analytics Operations ~~~~~~
+    def exec(self, stmt: str, params = {}):
+        with Session(self.engine) as session:
+            return session.exec(stmt, params=params).all()
 
     def get_date_range(self):
-        ans = self.db.exec("""
+        ans = self.exec("""
             SELECT MIN(date) as first_date, MAX(date) as last_date FROM document
         """)
         return list(map(dt.datetime.fromisoformat, ans[0]))
 
     def get_total_sentiment(self, document_id: str):
-        ans = self.db.exec("""
+        ans = self.exec("""
             WITH t1 AS (
                 SELECT 
                 document.id as document_id, 
@@ -78,4 +81,4 @@ class Dasboard:
 if __name__ == "__main__":
     args = parser.parse_args()
     dashboard = Dasboard(args.database)
-    dashboard.get_total_sentiment("00375cd420e37d4084c6668975f91648")
+    

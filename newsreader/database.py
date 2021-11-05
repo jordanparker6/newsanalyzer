@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Union
 import datetime as dt
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 
@@ -15,7 +15,7 @@ class Database:
                 session.add(item)
             session.commit()
 
-    def get_by_id(self, id: str, model: SQLModel):
+    def get_by_id(self, id: Union[str, int], model: SQLModel):
         with Session(self.engine) as session:
             stmt = select(model).where(model.id == id)
             return session.exec(stmt).first()
@@ -51,24 +51,18 @@ class Paragraph(SQLModel, table=True):
 class Entity(SQLModel, table=True):
     id: str = Field(primary_key=True)
     name: str
+    description: Optional[str]
 
 class EntityMention(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     text: str
-    score: float
+    score: Optional[float]
     label: str
     start: int
     end: int
     paragraph_id: str = Field(foreign_key="paragraph.id")
     kb_id: Optional[str] = Field(foreign_key="entity.id")
 
-"""
-class EntityFeatures(SQLModel, table=True):
-    id: str
-    key: str
-    value: Any
-    kb_id: Field(foreign_key="entity.id")
-"""
 
 
 

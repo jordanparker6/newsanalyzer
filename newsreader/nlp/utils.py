@@ -1,3 +1,4 @@
+from ..database import Database
 
 def split_paragraphs(text: str):
     text = text.replace("\r\n", "\n")
@@ -9,3 +10,17 @@ def truncate_text(text: str, max_length: int):
         return text[:max_length]
     except KeyError as e:
         return text
+
+def get_docs(database: Database):
+    return database.exec("""
+        SELECT document.id, document.text FROM document
+        WHERE NOT EXISTS (SELECT paragraph.id FROM paragraph WHERE document.id = paragraph.document_id)
+    """)
+
+def get_sent_label(score, threshold = 0.25):
+    if score > threshold:
+        return "POS"
+    elif score < threshold:
+        return "NEG"
+    else:
+        return "NEU"

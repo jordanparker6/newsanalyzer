@@ -1,6 +1,5 @@
 from typing import Dict, Any
 import requests
-from pprint import pprint
 from string import Template    
 
 class Wikidata:
@@ -75,9 +74,4 @@ class Wikidata:
         
         """
         return self.query(sparql, { "id": id })
-    
-        
-wiki = Wikidata()
-data = wiki.get_organisation_info("Q721162")
-pprint(data)
 

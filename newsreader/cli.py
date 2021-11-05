@@ -109,18 +109,11 @@ def askScraperInfo():
 def askNLPInfo():
     questions = [
         {
-            'type': 'input',
-            'name': "ner",
-            'message': "Which Huggingface NER model to use?",
-            'default': "dslim/bert-base-NER",
-            'validate': EmptyValidator
-        },
-                {
-            'type': 'input',
-            'name': "sent",
-            'message': "Which Huggingface Sentiment Analysis model to use?",
-            'default': "finiteautomata/bertweet-base-sentiment-analysis",
-            'validate': EmptyValidator
+            'type': 'select',
+            'name': "model",
+            'message': "Which SpaCy language model to use?",
+            'default': 'en_core_web_sm',
+            'choices': ['en_core_web_sm', 'en_core_web_lg', 'en_core_web_lg', 'en_core_web_trf'],
         }
     ]
     return prompt(questions, style=style)

@@ -1,7 +1,9 @@
+import sys
 from . import scrapers
 from . import cli
 from .database import Database
-from .nlp.transformers import analyse
+from .nlp.spacy import analyse
+from .utils import install_spacy_required_packages, run_streamlit_dashboard
 
 __author__ = "@jordanparker6"
 
@@ -25,11 +27,14 @@ def main():
 
     # 2) Run NLP Pipeline
     if "nlp" in methods:
-        analyse(db, cfg["nlp"]["ner"], cfg["nlp"]["sent"])
+        model = cfg["nlp"]["model"]
+        install_spacy_required_packages(model)
+        analyse(db, model)
 
     # 3) Serve Dashboard
     if "dashboard" in methods:
-        cli.log("serving dashboard...", color="green")
+        cli.log("Serving your dashboard...", style="#07b05b bold")
+        run_streamlit_dashboard(database["uri"])
     
 
 if __name__ == "__main__":

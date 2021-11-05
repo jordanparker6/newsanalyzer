@@ -1,71 +1,92 @@
 # Currently there is an issue with the latest SpaCy and PyDantic
-
+import subprocess
+import sys
+import multiprocessing as mp
 from tqdm import tqdm
 import logging
 import spacy
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
-from database import Database, Paragraph, EntityMention
-from .utils import split_paragraphs
+from textblob import TextBlob
+from ..database import Database, Entity, Paragraph, EntityMention
+from .utils import split_paragraphs, get_docs, get_sent_label
 
 log = logging.getLogger(__name__)
 
-# ~~~~ Utility Processing Methods ~~~~~~~
+THRESHOLD = 0.25
+NUM_THREADS = mp.cpu_count()
 
-def split_paragraphs(text: str):
-    text = text.replace("\r\n", "\n")
-    paragraphs = text.split('\n\n')
-    return list(filter(lambda x: len(x) > 0, paragraphs))
+
+def add_paragraph_to_db(
+        doc_id, 
+        i, 
+        doc, 
+        sent, 
+        db: Database
+    ):
+    output = [
+        Paragraph(
+            id=f"{doc_id}:{i}",
+            text=doc.text,
+            sentiment=get_sent_label(sent.polarity),
+            sent_score=sent.polarity,
+            document_id=doc_id
+        )
+    ]
+    for span in doc.ents:
+        output.append(
+            EntityMention(
+                paragraph_id=f"{doc_id}:{i}",
+                text=span.text,
+                start=span.start,
+                end=span.start + len(span.text),
+                kb_id=span.kb_id_,
+                label=span.label_,
+                score=span._.score
+            )
+        )
+        if span.kb_id_:
+            if not db.get_by_id(span.kb_id_, Entity):
+                db.create_all([
+                    Entity(
+                        id=span.kb_id_,
+                        name=span._.label[0],
+                        description=span._.description
+                    )
+                ])
+    db.create_all(output)
+
+class TextWorker:
+    def __init__(self, model: str) -> None:
+        super().__init__()
+        self.nlp = spacy.load(model)
+        self.nlp.add_pipe('opentapioca')
+    
+    def __call__(self, item):
+        idx, i, text = item
+        try:
+            return (idx, i, list(self.nlp.pipe([text]))[0], TextBlob(text).sentiment)
+        except Exception as e:
+            log.error(e, extra={ "id": idx, "text": text })
+            return None
 
 def analyse(
         database: Database,
-        sent_model: str
+        model: str
     ):
     print("NLP Analysis:")
-    # ~~~~ Inititate the Language Model Pipelines ~~~~~~~
-    pipe = spacy.load('en_core_web_trf')
-    #pipe.add_pipe('coreferee')
-    pipe.add_pipe('opentapioca')
-    #pipe.add_pipe('spacytextblob')
-    sent = pipeline(
-        task="sentiment-analysis", 
-        model=AutoModelForSequenceClassification.from_pretrained(sent_model),
-        tokenizer=AutoTokenizer.from_pretrained(sent_model)
-    )
+    worker = TextWorker(model)   
 
-    # ~~~~ Imperative analysis and processing ~~~~~~~
     while True:
-        docs = database.exec("""
-            SELECT document.id, document.text FROM document
-            WHERE NOT EXISTS (SELECT paragraph.id FROM paragraph WHERE document.id = paragraph.document_id)
-        """)
-        n = len(docs)
-        if n == 0:
+        docs = get_docs(database)
+        if len(docs) == 0:
             break
         for doc in tqdm(docs):
-            id, text = doc
+            idx, text = doc
             paragraphs = split_paragraphs(text)
-            if len(paragraphs) > 0:
-                items = zip(pipe(paragraphs), sent(paragraphs))
-                results = []
-                for j, item in enumerate(items):
-                    doc, sentiment = item
-                    results.append(
-                        Paragraph(
-                            id=f"{id}:{j}",
-                            text=doc.text,
-                            sentiment=sentiment["label"],
-                            sent_score=sentiment["score"],
-                            document_id=id
-                        )
-                    )
-                    for span in doc.ents:
-                        results.append(
-                            EntityMention(
-                                paragraph_id=f"{id}:{j}",
-                                text=span.text,
-                                kb_id=span.kb_id,
-                                label=span.label_,
-                                score=span.score_
-                            )
-                        )
-            database.create_all(results)
+            if len(paragraphs) == 0:
+                continue
+            items = map(worker, [(idx, *x) for x in enumerate(paragraphs)])
+            for item in items:
+                if item:
+                    add_paragraph_to_db(*item, db=database)
+
+
