@@ -14,7 +14,10 @@ def truncate_text(text: str, max_length: int):
 def get_docs(database: Database):
     return database.exec("""
         SELECT document.id, document.text FROM document
-        WHERE NOT EXISTS (SELECT paragraph.id FROM paragraph WHERE document.id = paragraph.document_id)
+        WHERE 
+        document.text IS NOT NULL
+        AND
+        NOT EXISTS (SELECT paragraph.id FROM paragraph WHERE document.id = paragraph.document_id)
     """)
 
 def get_sent_label(score, threshold = 0.25):

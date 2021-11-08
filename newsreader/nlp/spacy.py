@@ -1,92 +1,93 @@
-# Currently there is an issue with the latest SpaCy and PyDantic
-import subprocess
-import sys
-import multiprocessing as mp
 from tqdm import tqdm
 import logging
 import spacy
+import multiprocessing as mp
 from textblob import TextBlob
-from ..database import Database, Entity, Paragraph, EntityMention
+from ..database import Database, DatabaseWorker, Entity, EntityFeature, Paragraph, EntityMention
 from .utils import split_paragraphs, get_docs, get_sent_label
+from ..wikidata import Wikidata
 
 log = logging.getLogger(__name__)
 
-THRESHOLD = 0.25
-NUM_THREADS = mp.cpu_count()
+def process_doc(queue, msg):
+    idx, text = msg
+    paragraphs = split_paragraphs(text)
+    if len(paragraphs) == 0:
+        return
+    items = [(idx, *x) for x in enumerate(paragraphs)]
+    for item in items:
+        yield item
 
-
-def add_paragraph_to_db(
-        doc_id, 
-        i, 
-        doc, 
-        sent, 
-        db: Database
-    ):
-    output = [
-        Paragraph(
-            id=f"{doc_id}:{i}",
+def process_para(queue, msg, model):
+    try:
+        idx, i, text = msg
+        doc, sent = list(model.pipe([text]))[0], TextBlob(text).sentiment
+        queue.put(Paragraph(
+            id=f"{idx}:{i}",
             text=doc.text,
             sentiment=get_sent_label(sent.polarity),
             sent_score=sent.polarity,
-            document_id=doc_id
-        )
-    ]
-    for span in doc.ents:
-        output.append(
-            EntityMention(
-                paragraph_id=f"{doc_id}:{i}",
-                text=span.text,
-                start=span.start,
-                end=span.start + len(span.text),
-                kb_id=span.kb_id_,
-                label=span.label_,
-                score=span._.score
-            )
-        )
-        if span.kb_id_:
-            if not db.get_by_id(span.kb_id_, Entity):
-                db.create_all([
-                    Entity(
-                        id=span.kb_id_,
-                        name=span._.label[0],
-                        description=span._.description
-                    )
-                ])
-    db.create_all(output)
+            document_id=idx
+        ))
+        for span in doc.ents:
+            yield (idx, i, span)
+    except Exception as e:
+        print(e)
 
-class TextWorker:
-    def __init__(self, model: str) -> None:
-        super().__init__()
-        self.nlp = spacy.load(model)
-        self.nlp.add_pipe('opentapioca')
-    
-    def __call__(self, item):
-        idx, i, text = item
-        try:
-            return (idx, i, list(self.nlp.pipe([text]))[0], TextBlob(text).sentiment)
-        except Exception as e:
-            log.error(e, extra={ "id": idx, "text": text })
-            return None
+def process_entity(queue, msg):
+    idx, i, span = msg
+    queue.put(EntityMention(
+        paragraph_id=f"{idx}:{i}",
+        text=span.text,
+        start=span.start,
+        end=span.start + len(span.text),
+        kb_id=span.kb_id_,
+        label=span.label_,
+        score=span._.score
+    ))
+    if span.kb_id_:
+        yield span.label_, Entity(
+            id=span.kb_id_,
+            name=span._.label[0],
+            description=span._.description
+        )
+
+def enrich_entity(queue, msg):
+    type, ent = msg
+    idx = ent.id
+    wiki = Wikidata()
+    if type == "ORG":
+        data = wiki.get_organisation_info(idx)
+        for d in data:
+            for k, v in d.items():
+                queue.put(
+                EntityFeature(
+                    kb_id=idx,
+                    key=k,
+                    value=v
+                ))
 
 def analyse(
-        database: Database,
+        uri: str,
         model: str
     ):
     print("NLP Analysis:")
-    worker = TextWorker(model)   
+    queue = mp.Queue()
+    nlp = spacy.load(model)
+    nlp.add_pipe('opentapioca')
+    db = Database(uri)
+    docs = get_docs(db)
+    if len(docs) == 0:
+        return
+    worker = DatabaseWorker(uri, queue)
+    worker.start()
+    for doc in tqdm(docs):
+        for para in process_doc(queue, doc):
+            for entmen in process_para(queue, para, nlp):
+                for type, ent in process_entity(queue, entmen):
+                    if not db.get_by_id(ent.id, Entity):
+                        queue.put(ent)
+                        enrich_entity(queue, (type, ent))
 
-    while True:
-        docs = get_docs(database)
-        if len(docs) == 0:
-            break
-        for doc in tqdm(docs):
-            idx, text = doc
-            paragraphs = split_paragraphs(text)
-            if len(paragraphs) == 0:
-                continue
-            items = map(worker, [(idx, *x) for x in enumerate(paragraphs)])
-            for item in items:
-                if item:
-                    add_paragraph_to_db(*item, db=database)
-
+            
 

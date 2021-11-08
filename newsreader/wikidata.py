@@ -1,6 +1,21 @@
 from typing import Dict, Any
 import requests
-from string import Template    
+from string import Template
+
+def map_entry(x):
+    mapings = [
+        ("id", "wiki"), 
+        ("idLabel", "name"), 
+        ("country", "country_wiki"), 
+        ("countryLabel", "country"), 
+        ("industry", "industry_wiki"), 
+        ("industryLabel", "industry"), 
+    ]
+    for old, new in mapings:
+        if x.get(old):
+            x[new] = x[old]
+            del x[old]
+    return x
 
 class Wikidata:
     """
@@ -13,7 +28,7 @@ class Wikidata:
         r = requests.get(self.url, params = {'format': 'json', 'query': sparql })
         data = r.json()["results"]["bindings"]
         data = list(map(lambda x: { k: v["value"] for k,v in x.items() }, data))
-        return data
+        return list(map(map_entry, data))
 
     def get_info(self, label: str, id: str):
         if label == "ORG":

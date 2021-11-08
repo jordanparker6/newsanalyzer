@@ -76,8 +76,8 @@ def askMethodInfo():
             'name': 'methods',
             'message': 'Which features do you wish to run?',
             'choices': [
-                { "value": "scrapers", "name": "1) Run Web Scrapers", "checked": True },
-                { "value": "nlp", "name": "2) Run NLP Analysis", "checked": True },
+                { "value": "scrapers", "name": "1) Run Web Scrapers", "checked": False },
+                { "value": "nlp", "name": "2) Run NLP Analysis", "checked": False },
                 { "value": "dashboard", "name": "3) Serve Dashboard", "checked": False },
             ],
             'validate': lambda answer: 'You must choose at least one operation.' if len(answer) == 0 else True
@@ -113,7 +113,7 @@ def askNLPInfo():
             'name': "model",
             'message': "Which SpaCy language model to use?",
             'default': 'en_core_web_sm',
-            'choices': ['en_core_web_sm', 'en_core_web_lg', 'en_core_web_lg', 'en_core_web_trf'],
+            'choices': ['en_core_web_sm', 'en_core_web_md', 'en_core_web_lg', 'en_core_web_trf'],
         }
     ]
     return prompt(questions, style=style)

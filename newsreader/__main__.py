@@ -29,7 +29,7 @@ def main():
     if "nlp" in methods:
         model = cfg["nlp"]["model"]
         install_spacy_required_packages(model)
-        analyse(db, model)
+        analyse(database["uri"], model)
 
     # 3) Serve Dashboard
     if "dashboard" in methods:
