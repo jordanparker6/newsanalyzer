@@ -23,7 +23,7 @@ def get_docs(database: Database):
 def get_sent_label(score, threshold = 0.25):
     if score > threshold:
         return "POS"
-    elif score < threshold:
+    elif score < -1 * threshold:
         return "NEG"
     else:
         return "NEU"

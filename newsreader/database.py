@@ -1,8 +1,7 @@
-from re import T
 from typing import Optional, Dict, List, Any, Union
 import datetime as dt
 from sqlmodel import Field, Session, SQLModel, create_engine, select
-from threading import Thread
+import threading as th
 import queue
 
 # ~~~ Database ~~~~~~~~~~~~~~~
@@ -32,7 +31,7 @@ class Database:
         with Session(self.engine) as session:
             return session.exec(stmt, params=params).all()
 
-class DatabaseWorker(Thread):
+class DatabaseWorker(th.Thread):
     def __init__(self, 
             uri: str,
             queue: queue.Queue, 
@@ -41,11 +40,13 @@ class DatabaseWorker(Thread):
         ):
         super().__init__()
         self.q = queue
-        self.db = Database(uri)
+        self.db = None
+        self.uri = uri
         self.timeout = timeout
         self.batch = batch
     
     def run(self):
+        self.db = Database(self.uri)
         while True:
             cache = []
             try:
@@ -55,9 +56,10 @@ class DatabaseWorker(Thread):
                         self.db.create_all(cache)
                         cache = []
                 else:
-                    self.db.create_all(cache)
+                    
                     cache = []
             except queue.Empty:
+                self.db.create_all(cache)
                 break
 
 # ~~~ Models ~~~~~~~~~~~~~~~~~
@@ -95,7 +97,7 @@ class EntityMention(SQLModel, table=True):
 
 class EntityFeature(SQLModel, table=True):
     id: int = Field(primary_key=True)
-    kb_id: int = Field(foreign_key="entity.id")
+    kb_id: str = Field(foreign_key="entity.id")
     key: str
     value: str
 
